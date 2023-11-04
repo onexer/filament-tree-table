@@ -4,12 +4,12 @@ namespace Onexer\FilamentTreeTable\TreeTable\Concerns;
 
 use Closure;
 use Filament\Support\Enums\ActionSize;
-use Onexer\FilamentTreeTable\Actions\Action;
-use Onexer\FilamentTreeTable\Actions\ActionGroup;
-use Onexer\FilamentTreeTable\Enums\ActionsPosition;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
+use Onexer\FilamentTreeTable\Actions\Action;
+use Onexer\FilamentTreeTable\Actions\ActionGroup;
+use Onexer\FilamentTreeTable\Enums\ActionsPosition;
 
 trait HasActions
 {
@@ -58,6 +58,7 @@ trait HasActions
             $this->actions[] = $action;
         }
 
+
         $position && $this->actionsPosition($position);
 
         return $this;
@@ -69,6 +70,22 @@ trait HasActions
     public function getFlatActions(): array
     {
         return $this->flatActions;
+    }
+
+    /**
+     * @param  array<string, Action>  $actions
+     */
+    protected function mergeCachedFlatActions(array $actions): void
+    {
+        $this->flatActions = [
+            ...$this->flatActions,
+            ...$actions,
+        ];
+    }
+
+    protected function cacheAction(Action $action): void
+    {
+        $this->flatActions[$action->getName()] = $action;
     }
 
     public function actionsPosition(ActionsPosition|Closure|null $position = null): static
@@ -132,6 +149,32 @@ trait HasActions
         );
     }
 
+    /**
+     * @param  array<string>  $modalActionNames
+     */
+    protected function getMountableModalActionFromAction(Action $action, array $modalActionNames, string $parentActionName, ?Model $mountedRecord = null): ?Action
+    {
+        foreach ($modalActionNames as $modalActionName) {
+            $action = $action->getMountableModalAction($modalActionName);
+
+            if (!$action) {
+                return null;
+            }
+
+            if ($action instanceof Action) {
+                $action->record($mountedRecord);
+            }
+
+            $parentActionName = $modalActionName;
+        }
+
+        if (!$action instanceof Action) {
+            return null;
+        }
+
+        return $action;
+    }
+
     public function hasAction(string $name): bool
     {
         return array_key_exists($name, $this->getFlatActions());
@@ -160,47 +203,5 @@ trait HasActions
     public function getActionsColumnLabel(): ?string
     {
         return $this->evaluate($this->actionsColumnLabel);
-    }
-
-    /**
-     * @param  array<string, Action>  $actions
-     */
-    protected function mergeCachedFlatActions(array $actions): void
-    {
-        $this->flatActions = [
-            ...$this->flatActions,
-            ...$actions,
-        ];
-    }
-
-    protected function cacheAction(Action $action): void
-    {
-        $this->flatActions[$action->getName()] = $action;
-    }
-
-    /**
-     * @param  array<string>  $modalActionNames
-     */
-    protected function getMountableModalActionFromAction(Action $action, array $modalActionNames, string $parentActionName, ?Model $mountedRecord = null): ?Action
-    {
-        foreach ($modalActionNames as $modalActionName) {
-            $action = $action->getMountableModalAction($modalActionName);
-
-            if (!$action) {
-                return null;
-            }
-
-            if ($action instanceof Action) {
-                $action->record($mountedRecord);
-            }
-
-            $parentActionName = $modalActionName;
-        }
-
-        if (!$action instanceof Action) {
-            return null;
-        }
-
-        return $action;
     }
 }

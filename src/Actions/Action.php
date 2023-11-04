@@ -2,14 +2,15 @@
 
 namespace Onexer\FilamentTreeTable\Actions;
 
+use Exception;
 use Filament\Actions\Concerns\HasMountableArguments;
 use Filament\Actions\Concerns\InteractsWithRecord;
 use Filament\Actions\Contracts\Groupable;
 use Filament\Actions\Contracts\HasRecord;
 use Filament\Actions\MountableAction;
 use Filament\Actions\StaticAction;
-use Onexer\FilamentTreeTable\Actions\Contracts\HasTreeTable;
 use Illuminate\Database\Eloquent\Model;
+use Onexer\FilamentTreeTable\Actions\Contracts\HasTreeTable;
 
 class Action extends MountableAction implements Groupable, HasRecord, HasTreeTable
 {
@@ -23,7 +24,7 @@ class Action extends MountableAction implements Groupable, HasRecord, HasTreeTab
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function getLivewireClickHandler(): ?string
     {
@@ -79,11 +80,6 @@ class Action extends MountableAction implements Groupable, HasRecord, HasTreeTab
             ->record($this->getRecord());
     }
 
-    public function getModel(): string
-    {
-        return $this->getCustomModel() ?? $this->getTreeTable()->getModel();
-    }
-
     /**
      * @return array<mixed>
      */
@@ -91,10 +87,16 @@ class Action extends MountableAction implements Groupable, HasRecord, HasTreeTab
     {
         return match ($parameterName) {
             'model' => [$this->getModel()],
+            'parentRecord' => [$this->getParentRecord()],
             'record' => [$this->getRecord()],
             'treeTable' => [$this->getTreeTable()],
             default => parent::resolveDefaultClosureDependencyForEvaluationByName($parameterName),
         };
+    }
+
+    public function getModel(): string
+    {
+        return $this->getCustomModel() ?? $this->getTreeTable()->getModel();
     }
 
     /**

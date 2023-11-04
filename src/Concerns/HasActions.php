@@ -5,9 +5,8 @@ namespace Onexer\FilamentTreeTable\Concerns;
 use Filament\Forms\Form;
 use Filament\Support\Exceptions\Cancel;
 use Filament\Support\Exceptions\Halt;
-use Onexer\FilamentTreeTable\Actions\Action;
-use Onexer\FilamentTreeTable\Actions\ActionGroup;
 use Illuminate\Database\Eloquent\Model;
+use Onexer\FilamentTreeTable\Actions\Action;
 use function Livewire\store;
 
 /**
@@ -98,6 +97,11 @@ trait HasActions
         return null;
     }
 
+    public function mountedTreeTableActionRecord(int|string|null $record): void
+    {
+        $this->mountedTreeTableActionRecord = $record;
+    }
+
     public function getMountedTreeTableAction(): ?Action
     {
         if (!count($this->mountedTreeTableActions ?? [])) {
@@ -146,6 +150,34 @@ trait HasActions
         $this->openTreeTableActionModal();
     }
 
+    protected function popMountedTreeTableAction(): ?string
+    {
+        try {
+            return array_pop($this->mountedTreeTableActions);
+        } finally {
+            array_pop($this->mountedTreeTableActionsData);
+        }
+    }
+
+    protected function resetMountedTreeTableActionProperties(): void
+    {
+        $this->mountedTreeTableActions     = [];
+        $this->mountedTreeTableActionsData = [];
+    }
+
+    protected function closeTreeTableActionModal(): void
+    {
+        $this->dispatch('close-modal', id: "{$this->getId()}-tree-table-action");
+    }
+
+    protected function cacheMountedTreeTableActionForm(): void
+    {
+        $this->cacheForm(
+            'mountedTreeTableActionForm',
+            fn() => $this->getMountedTreeTableActionForm(),
+        );
+    }
+
     public function getMountedTreeTableActionForm(): ?Form
     {
         $action = $this->getMountedTreeTableAction();
@@ -158,9 +190,12 @@ trait HasActions
             return $this->getForm('mountedTreeTableActionForm');
         }
 
+
         return $action->getForm(
             $this->makeForm()
                 ->model($this->getMountedTreeTableActionRecord() ?? $this->getTreeTable()->getModel())
+//                ->model(implode('.',
+//                    $this->mountedTreeTableActions) === 'create' ? $this->getTreeTable()->getModel() : $this->getMountedTreeTableActionRecord() ?? $this->getTreeTable()->getModel())
                 ->statePath('mountedTreeTableActionsData.'.array_key_last($this->mountedTreeTableActionsData))
                 ->operation(implode('.', $this->mountedTreeTableActions)),
         );
@@ -182,6 +217,11 @@ trait HasActions
     public function getMountedTreeTableActionRecordKey(): int|string|null
     {
         return $this->mountedTreeTableActionRecord;
+    }
+
+    protected function openTreeTableActionModal(): void
+    {
+        $this->dispatch('open-modal', id: "{$this->getId()}-tree-table-action");
     }
 
     public function mountedTreeTableActionHasForm(): bool
@@ -260,44 +300,6 @@ trait HasActions
         $this->unmountTreeTableAction();
 
         return $result;
-    }
-
-    public function mountedTreeTableActionRecord(int|string|null $record): void
-    {
-        $this->mountedTreeTableActionRecord = $record;
-    }
-
-    protected function popMountedTreeTableAction(): ?string
-    {
-        try {
-            return array_pop($this->mountedTreeTableActions);
-        } finally {
-            array_pop($this->mountedTreeTableActionsData);
-        }
-    }
-
-    protected function resetMountedTreeTableActionProperties(): void
-    {
-        $this->mountedTreeTableActions     = [];
-        $this->mountedTreeTableActionsData = [];
-    }
-
-    protected function closeTreeTableActionModal(): void
-    {
-        $this->dispatch('close-modal', id: "{$this->getId()}-tree-table-action");
-    }
-
-    protected function cacheMountedTreeTableActionForm(): void
-    {
-        $this->cacheForm(
-            'mountedTreeTableActionForm',
-            fn() => $this->getMountedTreeTableActionForm(),
-        );
-    }
-
-    protected function openTreeTableActionModal(): void
-    {
-        $this->dispatch('open-modal', id: "{$this->getId()}-tree-table-action");
     }
 
     protected function configureTreeTableAction(Action $action): void
