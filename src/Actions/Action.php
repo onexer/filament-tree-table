@@ -87,7 +87,6 @@ class Action extends MountableAction implements Groupable, HasRecord, HasTreeTab
     {
         return match ($parameterName) {
             'model' => [$this->getModel()],
-            'parentRecord' => [$this->getParentRecord()],
             'record' => [$this->getRecord()],
             'treeTable' => [$this->getTreeTable()],
             default => parent::resolveDefaultClosureDependencyForEvaluationByName($parameterName),

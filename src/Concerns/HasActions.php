@@ -190,12 +190,9 @@ trait HasActions
             return $this->getForm('mountedTreeTableActionForm');
         }
 
-
         return $action->getForm(
             $this->makeForm()
                 ->model($this->getMountedTreeTableActionRecord() ?? $this->getTreeTable()->getModel())
-//                ->model(implode('.',
-//                    $this->mountedTreeTableActions) === 'create' ? $this->getTreeTable()->getModel() : $this->getMountedTreeTableActionRecord() ?? $this->getTreeTable()->getModel())
                 ->statePath('mountedTreeTableActionsData.'.array_key_last($this->mountedTreeTableActionsData))
                 ->operation(implode('.', $this->mountedTreeTableActions)),
         );
