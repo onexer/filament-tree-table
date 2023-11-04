@@ -264,6 +264,11 @@ trait HasActions
 
         $form = $this->getMountedTreeTableActionForm();
 
+
+        if (implode('.', $this->mountedTreeTableActions) === 'create') {
+            $form->model = $this->getTreeTable()->getModel();
+        }
+
         $result = null;
 
         try {
