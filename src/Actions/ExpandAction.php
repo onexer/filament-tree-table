@@ -2,8 +2,8 @@
 
 namespace Onexer\FilamentTreeTable\Actions;
 
+use Illuminate\Database\Eloquent\Model;
 use Onexer\FilamentTreeTable\TreeTable;
-use SmartEntity\Legislation\Library\Models\Article;
 
 class ExpandAction extends Action
 {
@@ -17,10 +17,10 @@ class ExpandAction extends Action
         parent::setUp();
         $this->name('expand');
 
-        $this->label(__('filament-tree-table::actions.expand.single.label'));
+        $this->label(null);
         $this->icon('heroicon-o-bars-arrow-down');
-        $this->badge(fn(Article $record) => $record->children_count);
-        $this->hidden(fn(Article $record, TreeTable $treeTable) => $record->children_count == 0 || $treeTable->getLivewire()->inChain($record->id));
-        $this->action(fn(Article $record, TreeTable $treeTable) => $treeTable->getLivewire()->addToChain($record->id));
+        $this->badge(fn(Model $record) => $record->children_count);
+        $this->hidden(fn(Model $record, TreeTable $treeTable) => $record->children_count == 0 || $treeTable->getLivewire()->inChain($record->id));
+        $this->action(fn(Model $record, TreeTable $treeTable) => $treeTable->getLivewire()->addToChain($record->id));
     }
 }
